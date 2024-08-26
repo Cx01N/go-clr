@@ -1,3 +1,4 @@
+//go:build windows
 // +build windows
 
 package main
@@ -8,7 +9,7 @@ import (
 	"log"
 	"runtime"
 
-	clr "github.com/Ne0nd0g/go-clr"
+	clr "github.com/Cx01N/go-clr"
 )
 
 func main() {

@@ -1,3 +1,4 @@
+//go:build windows
 // +build windows
 
 // C2Framework is an example of how a Command & Control (C2) Framework could load the CLR,
@@ -15,7 +16,7 @@ import (
 	"log"
 	"os"
 
-	clr "github.com/Ne0nd0g/go-clr"
+	clr "github.com/Cx01N/go-clr"
 )
 
 func main() {
