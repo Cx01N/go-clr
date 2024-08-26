@@ -1,3 +1,4 @@
+//go:build windows
 // +build windows
 
 package clr
@@ -98,10 +99,12 @@ func (obj *ICLRRuntimeHost) Start() error {
 
 // ExecuteInDefaultAppDomain Calls the specified method of the specified type in the specified managed assembly.
 // HRESULT ExecuteInDefaultAppDomain (
-//   [in] LPCWSTR pwzAssemblyPath,
-//   [in] LPCWSTR pwzTypeName,
-//   [in] LPCWSTR pwzMethodName,
-//   [in] LPCWSTR pwzArgument,
+//
+//	[in] LPCWSTR pwzAssemblyPath,
+//	[in] LPCWSTR pwzTypeName,
+//	[in] LPCWSTR pwzMethodName,
+//	[in] LPCWSTR pwzArgument,
+//
 // [out] DWORD *pReturnValue
 // );
 // An LPCWSTR is a 32-bit pointer to a constant string of 16-bit Unicode characters, which MAY be null-terminated.
@@ -134,7 +137,9 @@ func (obj *ICLRRuntimeHost) ExecuteInDefaultAppDomain(pwzAssemblyPath, pwzTypeNa
 
 // GetCurrentAppDomainID Gets the numeric identifier of the AppDomain that is currently executing.
 // HRESULT GetCurrentAppDomainId(
-//   [out] DWORD* pdwAppDomainId
+//
+//	[out] DWORD* pdwAppDomainId
+//
 // );
 // https://docs.microsoft.com/en-us/dotnet/framework/unmanaged-api/hosting/iclrruntimehost-getcurrentappdomainid-method
 func (obj *ICLRRuntimeHost) GetCurrentAppDomainID() (pdwAppDomainId uint32, err error) {
@@ -151,6 +156,29 @@ func (obj *ICLRRuntimeHost) GetCurrentAppDomainID() (pdwAppDomainId uint32, err 
 	}
 	if hr != S_OK {
 		err = fmt.Errorf("the ICLRRuntimeHost::GetCurrentAppDomainID method returned a non-zero HRESULT: 0x%x", hr)
+		return
+	}
+	err = nil
+	return
+}
+
+func (obj *ICLRRuntimeHost) ExecuteInAppDomain(domainID uint32, pwzTypeName, pwzMethodName, pwzArgument *uint16) (pReturnValue *uint32, err error) {
+	hr, _, err := syscall.Syscall6(
+		obj.vtbl.ExecuteInAppDomain,
+		5,
+		uintptr(unsafe.Pointer(obj)),
+		uintptr(domainID),
+		uintptr(unsafe.Pointer(pwzTypeName)),
+		uintptr(unsafe.Pointer(pwzMethodName)),
+		uintptr(unsafe.Pointer(pwzArgument)),
+		uintptr(unsafe.Pointer(pReturnValue)),
+	)
+	if err != syscall.Errno(0) {
+		err = fmt.Errorf("the ICLRRuntimeHost::ExecuteInAppDomain method returned an error:\r\n%s", err)
+		return
+	}
+	if hr != S_OK {
+		err = fmt.Errorf("the ICLRRuntimeHost::ExecuteInAppDomain method returned a non-zero HRESULT: 0x%x", hr)
 		return
 	}
 	err = nil
